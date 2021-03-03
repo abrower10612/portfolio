@@ -2,13 +2,9 @@
   display: inline-block;
   cursor: pointer;
   position: absolute;
-  right: 30px;
-  top: 30px;
+  right: 25px;
+  top: 25px;
 }
-
-// .change {
-//   opacity: 0;
-// }
 
 .bar1, .bar2, .bar3 {
   width: 35px;
@@ -17,6 +13,10 @@
   margin: 6px 0;
   transition: 0.4s;
 }
+
+// .change {
+//   opacity: 0;
+// }
 
 // .change .bar1 {
 //   -webkit-transform: rotate(-45deg) translate(-9px, 6px);
@@ -62,9 +62,9 @@
 /* Position and style the close button (top right corner) */
 .sidenav .closebtn {
   position: absolute;
-  top: 10px;
-  right: 30px;
-  font-size: 3em;
+  top: 5px;
+  right: 20px;
+  font-size: 3.5em;
   margin-left: 50px;
 }
 
