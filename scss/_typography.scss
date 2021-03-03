@@ -74,3 +74,9 @@ main p {
     margin: 20px;
   }
 }
+
+@media screen and (orientation: landscape) {
+  main p {
+    margin: 30px;
+  }
+}
