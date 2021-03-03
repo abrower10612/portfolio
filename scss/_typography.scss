@@ -26,6 +26,20 @@ main p {
   color: white;
 }
 
+@media all and (max-width: $xsmall-max-width) {
+  h1 {
+    font-size: 2em;
+  }
+
+  h2 {
+    font-size: 1.5em;
+  }
+
+  main p {
+    font-size: 1em;
+  }
+}
+
 @media all and (min-width: $medium-min-width) {
   header {
     display: flex;
