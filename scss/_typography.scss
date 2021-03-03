@@ -1,17 +1,62 @@
 h1, h2 {
   text-align: center;
-  margin: 0;
-  color: $header-color;
+  color: $dark-grey;
   font-family: 'Roboto Slab', serif;
+}
+
+h1 {
+  font-size: 2em;
+  margin-top: 10px;
+  
+}
+
+h2 {
+  font-size: 1.5em;
+  margin-bottom: 10px;
 }
 
 main p {
   text-align: center;
-  margin: 10px;
   font-family: 'Montserrat', sans-serif;
-  color: $paragraph-color;
+  font-size: 1em;
+  color: $dark-grey;
 }
 
 #projects h2, #projects p, #offer h2, #offer p {
   color: white;
+}
+
+@media all and (min-width: $medium-min-width) {
+  header {
+    display: flex;
+    justify-content: center; 
+    align-items: center;
+  }
+
+  h1 {
+    font-size: 3em;
+  }
+
+  h2 {
+    font-size: 2em;
+  }
+
+  main p {
+    font-size: 1.25em;
+  }
+}
+
+@media all and (min-width: $large-min-width) {
+  h1 {
+    font-size: 4em;
+  }
+
+  h2 {
+    font-size: 3em;
+  }
+
+  main p {
+    font-size: 1.5em;
+    margin: 20px;
+  }
 }

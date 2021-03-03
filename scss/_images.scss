@@ -1,15 +1,25 @@
 header img {
   display: block;
   margin: auto;
-  border: solid 3px $box-border-color;
+  border: solid 3px $dark-grey;
   border-radius: 100%;
-  width: 50%;
+  width: 40%;
+  box-shadow: 5px 5px 20px #333;
+}
+
+#project-icons {
+  display: grid;
+  grid-template-columns: repeat (3, 1fr );
+  grid-template-rows: repeat (3, 1fr );
+  justify-content: center;
+  margin: 30px 0 20px 0;
 }
 
 #project-icons img {
-  width: 100%;
-  border: solid 2px $box-border-color;
+  width: 90%;
+  border: solid 3px $dark-grey;
   border-radius: 100%;
+  box-shadow: 5px 5px 20px #f1f1f1;
 }
 
 #project-icons a:nth-of-type(1) {
@@ -28,4 +38,34 @@ header img {
   grid-column: 3;
   grid-row: 3;
   text-align: center;
+}
+
+@media all and (min-width: $medium-min-width) {
+  header img {
+    display: inline;
+    margin: 30px;
+    border: solid 3px $dark-grey;
+    border-radius: 100%;
+    width: 25%;
+    max-width: 400px;
+  }
+
+  #project-icons {
+    display: flex;
+  }
+
+  #project-icons img:hover {
+    border: solid 3px $yellow;
+  }
+
+  #project-icons img {
+    width: 60%;
+    border: solid 3px $dark-grey;
+    border-radius: 100%;
+    margin: 0;
+  }
+}
+
+@media all and (min-width: $large-min-width) {
+
 }

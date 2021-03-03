@@ -1,11 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat&family=Roboto+Slab&display=swap');
 
-$background-color: #FAF33E;
-$background-color2: #55505C;
-$background-color3: #7FC6A4;
-$header-color: #55505C;
-$paragraph-color: #55505C;
-$box-border-color: #5D737E;
+$dark-grey: #55505C;
+$yellow: #FAF33E;
+$medium-min-width: 750px;
+$large-min-width: 1000px;
 
 * {
   margin: 0;
@@ -13,30 +11,34 @@ $box-border-color: #5D737E;
 }
 
 header {
-  background-color: $background-color;
+  background-color: $yellow;
   margin: 0;
   padding: 20px 0 10px 0;
 }
 
 #aboutMe {
-  background-color: $background-color;
+  background-color: $yellow;
   padding: 20px;
 }
 
-#project-icons {
-  display: grid;
-  grid-template-columns: repeat (3, 1fr );
-  grid-template-rows: repeat (3, 1fr );
-  align-items: center;
-  align-content: center;
-}
-
 #projects, #offer {
-  background-color: $background-color2;
+  background-color: $dark-grey;
   padding: 20px;
 }
 
 #resume, #contact {
-  background-color: $background-color;
+  background-color: $yellow;
   padding: 20px;
+}
+
+@media all and (min-width: $medium-min-width) {
+  #project-icons {
+    display: block;
+    margin: 40px;
+    text-align: center;
+  }
+}
+
+@media all and (min-width: $large-min-width) {
+
 }
