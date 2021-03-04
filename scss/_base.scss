@@ -24,11 +24,19 @@ header {
 
 #projects, #offer {
   background-color: $dark-grey;
+  padding-bottom: 20px;
+}
+
+#offer {
   padding: 20px;
 }
 
 #resume, #contact {
   background-color: $yellow;
+  padding-bottom: 20px;
+}
+
+#contact {
   padding: 20px;
 }
 

@@ -66,6 +66,12 @@ header img {
   }
 }
 
+@media all and (max-width: $medium-min-width) {
+  #project-icons {
+    margin: 20px;
+  }
+}
+
 @media all and (min-width: $large-min-width) {
 
 }

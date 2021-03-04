@@ -26,6 +26,14 @@ main p {
   color: white;
 }
 
+#projects h2, #resume h2 {
+  margin-top: 40px;
+}
+
+#projects p, #resume p {
+  padding: 0 20px;
+}
+
 @media all and (max-width: $xsmall-max-width) {
   h1 {
     font-size: 2em;
