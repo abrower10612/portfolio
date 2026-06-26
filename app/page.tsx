@@ -5,6 +5,7 @@ import { Stack } from "@/components/sections/Stack";
 import { Work } from "@/components/sections/Work";
 import { Projects } from "@/components/sections/Projects";
 import { Education } from "@/components/sections/Education";
+import { Testimonials } from "@/components/sections/Testimonials";
 import { Contact } from "@/components/sections/Contact";
 import { Footer } from "@/components/sections/Footer";
 
@@ -21,6 +22,7 @@ export default function Home() {
         <Work />
         <Projects />
         <Education />
+        <Testimonials />
         <Contact />
       </main>
       <Footer />
