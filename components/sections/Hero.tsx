@@ -90,10 +90,9 @@ export function Hero() {
             Senior Full Stack Engineer · Available for new roles
           </span>
 
-          <h1
-            className="hero-reveal font-heading text-4xl font-bold tracking-tight text-balance sm:text-5xl lg:text-6xl"
-            style={{ animationDelay: "0.15s" }}
-          >
+          {/* Headline renders immediately (no fade) so it isn't penalized
+              as the LCP element; the rest of the hero still cascades in. */}
+          <h1 className="font-heading text-4xl font-bold tracking-tight text-balance sm:text-5xl lg:text-6xl">
             I build fast, modern web applications from idea to production.
           </h1>
 

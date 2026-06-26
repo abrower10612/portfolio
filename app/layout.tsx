@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Montserrat, Inter } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
+
 import { CustomCursor } from "@/components/custom-cursor";
 
 // Montserrat — headings + UI elements
@@ -44,6 +46,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <CustomCursor />
         {children}
+        <Analytics />
       </body>
     </html>
   );
