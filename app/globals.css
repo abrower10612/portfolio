@@ -1,26 +1,401 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-montserrat);
+
+  /* ---- Brand color tokens (sampled from the logo) ----
+     Tailwind v4 is CSS-first: tokens are declared here (not in a
+     tailwind.config file). Each generates utilities, e.g. bg-navy,
+     text-gold, text-brand, border-paper, etc.
+       navy   = #0A1628  the "A" mark — deep neutral foundation
+       gold   = #F2C230  lower gradient — the action accent (CTAs)
+       purple = #7E3F9E  upper gradient — used in the logo mark gradient
+       brand  = mode-tuned purple for text/detail accents
+       paper  = #FAFAFA  (the "White" token)
+       ink    = #020202  (the "Black" token)
+     Used strategically — navy + grays carry most of the UI. */
+  --color-navy: var(--navy);
+  --color-gold: var(--gold);
+  --color-purple: var(--purple);
+  --color-brand: var(--brand);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+/* ---- Brand palette: raw values + light/dark semantic overrides ----
+   Declared after shadcn's defaults so these win. The whole site styles
+   off the semantic tokens (background/foreground/primary/card/...), so
+   sections theme themselves automatically in both light and dark mode. */
+:root {
+  --navy: #0a1628;
+  --gold: #f2c230;
+  --purple: #7e3f9e;
+  --paper: #fafafa;
+  --ink: #020202;
+  /* Purple text accent, darkened for contrast on the light canvas. */
+  --brand: #6d3a8c;
+
+  /* Light mode = paper canvas, navy ink */
+  --background: var(--paper);
+  --foreground: var(--navy);
+  --card: #ffffff;
+  --card-foreground: var(--navy);
+  --popover: #ffffff;
+  --popover-foreground: var(--navy);
+  /* Gold is the primary action color; navy text rides on top of it. */
+  --primary: var(--gold);
+  --primary-foreground: var(--navy);
+  --secondary: #eef1f5;
+  --secondary-foreground: var(--navy);
+  --muted: #eef1f5;
+  --muted-foreground: #51607a;
+  --accent: #eef1f5;
+  --accent-foreground: var(--navy);
+  --border: #e2e6ec;
+  --input: #e2e6ec;
+  --ring: var(--brand);
+}
+
+.dark {
+  /* Dark mode = navy canvas, paper ink */
+  --background: var(--navy);
+  --foreground: var(--paper);
+  --card: #0f2036;
+  --card-foreground: var(--paper);
+  --popover: #0f2036;
+  --popover-foreground: var(--paper);
+  --primary: var(--gold);
+  --primary-foreground: var(--navy);
+  --secondary: #14253b;
+  --secondary-foreground: var(--paper);
+  --muted: #14253b;
+  --muted-foreground: #93a1b5;
+  --accent: #14253b;
+  --accent-foreground: var(--paper);
+  --border: #1c2f49;
+  --input: #1c2f49;
+  --ring: var(--brand);
+  /* Lighter purple so the accent stays legible on navy. */
+  --brand: #c79be6;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+    scroll-behavior: smooth;
+  }
+}
+/* ============================================================
+   Hero section animations
+   All decorative; every effect has a prefers-reduced-motion
+   fallback at the bottom of this block. Motion stays gentle to
+   read as "premium" rather than flashy.
+   ============================================================ */
+
+/* Staggered entrance — children fade + rise on load. */
+@keyframes hero-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Slow ambient drift for the logo glyph. */
+@keyframes hero-drift-alt {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.04);
+  }
+  50% {
+    transform: translate3d(-3%, 4%, 0) scale(0.96);
+  }
+}
+
+/* Logo glyph fading in. */
+@keyframes hero-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Scroll cue chevron bob. */
+@keyframes hero-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.65;
+  }
+  50% {
+    transform: translateY(6px);
+    opacity: 1;
+  }
+}
+
+/* CTA sheen sweep on hover. */
+@keyframes hero-sheen {
+  to {
+    transform: translateX(220%);
+  }
+}
+
+.hero-reveal {
+  opacity: 0;
+  animation: hero-fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Smooth cursor-parallax return. The transform itself is set inline
+   from --px/--py CSS vars updated on pointermove. */
+.hero-parallax {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.hero-drift-alt {
+  animation: hero-drift-alt 24s ease-in-out infinite;
+}
+
+/* ===== Custom cursor =====
+   A brand purple→gold gradient ring trailing the pointer, plus a precise
+   dot at the true position. Activated by JS (adds .has-custom-cursor) only
+   on fine-pointer, non-reduced-motion devices. */
+.has-custom-cursor,
+.has-custom-cursor * {
+  cursor: none !important;
+}
+
+.cursor-dot,
+.cursor-ring {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0;
+  will-change: transform;
+}
+
+/* Precise dot — brand token keeps it legible on both canvases. */
+.cursor-dot {
+  height: 7px;
+  width: 7px;
+  border-radius: 9999px;
+  background: var(--brand);
+  transition: opacity 0.3s ease, height 0.2s ease, width 0.2s ease;
+}
+
+.cursor-dot.is-hover {
+  height: 0;
+  width: 0;
+}
+
+/* Trailing ring — gradient outline via a mask cutting out the centre. */
+.cursor-ring {
+  height: 34px;
+  width: 34px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #7e3f9e, #f2c230);
+  -webkit-mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 1.5px),
+    #000 calc(100% - 1.5px)
+  );
+  mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 1.5px),
+    #000 calc(100% - 1.5px)
+  );
+  transition: opacity 0.3s ease,
+    height 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cursor-ring.is-hover {
+  height: 56px;
+  width: 56px;
+}
+
+.cursor-ring.is-down {
+  height: 26px;
+  width: 26px;
+}
+
+/* Opacity-only entrance so it doesn't clash with the glyph's drift
+   transform. Nested under a low-opacity wrapper, so 0→1 here resolves to
+   0→(faint) on screen. */
+.hero-fade-in {
+  opacity: 0;
+  animation: hero-fade 1s ease 0.2s forwards;
+}
+
+.hero-bounce {
+  animation: hero-bounce 1.8s ease-in-out infinite;
+}
+
+.hero-cta-sheen {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-cta-sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 30%,
+    rgb(255 255 255 / 0.35) 50%,
+    transparent 70%
+  );
+  transform: translateX(-160%);
+  pointer-events: none;
+}
+
+.hero-cta-sheen:hover::after {
+  animation: hero-sheen 0.9s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-reveal {
+    opacity: 1;
+    animation: none;
+  }
+  .hero-drift-alt,
+  .hero-bounce,
+  .hero-parallax {
+    animation: none;
+    transition: none;
+  }
+  .hero-fade-in {
+    opacity: 1;
+    animation: none;
+  }
+  .hero-cta-sheen:hover::after {
+    animation: none;
+  }
 }
