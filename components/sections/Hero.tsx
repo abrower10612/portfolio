@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ArrowDown } from "lucide-react";
+import { ArrowDown, Download } from "lucide-react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -132,6 +132,17 @@ export function Hero() {
               render={<a href="#work" />}
             >
               View my work
+            </Button>
+            {/* Tertiary CTA → résumé download */}
+            <Button
+              variant="ghost"
+              size="lg"
+              className="w-full sm:w-auto"
+              nativeButton={false}
+              render={<a href="/andrew-brower-resume.pdf" download />}
+            >
+              <Download />
+              Résumé
             </Button>
           </div>
         </div>

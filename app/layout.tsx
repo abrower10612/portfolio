@@ -17,6 +17,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://andrewbrower.dev"),
   title: "Andrew Brower | Full Stack Software Engineer",
   description:
     "Senior full stack software engineer specializing in React, Next.js, and TypeScript.",

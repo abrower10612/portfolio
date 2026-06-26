@@ -48,6 +48,14 @@ export function Contact() {
           >
             LinkedIn
           </a>
+          <a
+            href="https://github.com/abrower10612"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-heading text-base font-medium text-foreground underline-offset-4 transition-colors hover:text-brand hover:underline"
+          >
+            GitHub
+          </a>
         </Reveal>
       </div>
     </section>
