@@ -15,7 +15,7 @@ function GitHubIcon({ className }: { className?: string }) {
 
 type Project = {
   name: string;
-  category: "Professional" | "Personal";
+  category: "Professional" | "Personal" | "Product";
   image: string;
   blurb: string;
   stack: string[];
@@ -24,6 +24,15 @@ type Project = {
 };
 
 const PROJECTS: Project[] = [
+  {
+    name: "BambooHR",
+    category: "Professional",
+    image: "/projects/bamboohr.webp",
+    blurb:
+      "A leading HR platform used by tens of thousands of companies. As a key contributor to a company wide frontend modernization, I helped migrate the interface from a legacy PHP Twig engine to modern React, building clean, modular components and patterns the engineering team adopted across the codebase.",
+    stack: ["React", "TypeScript", "JavaScript"],
+    live: "https://www.bamboohr.com/",
+  },
   {
     name: "TaxCredible",
     category: "Professional",
@@ -52,34 +61,21 @@ const PROJECTS: Project[] = [
     live: "https://www.cocoatickets.com/",
   },
   {
-    name: "Dice Roller",
-    category: "Personal",
-    image: "/projects/dice-roller.webp",
+    name: "Kaveotech",
+    category: "Professional",
+    image: "/projects/kaveotech.webp",
     blurb:
-      "A small Flutter app where you choose how many dice to roll and let them fly. A quick exploration of Dart and Flutter.",
-    stack: ["Dart", "Flutter"],
-    live: "https://dice-roller-bvd3.onrender.com/",
-    repo: "https://github.com/abrower10612/flutter-dice-roller",
+      "The web development and digital marketing agency I founded and run, serving contractors and home services businesses. I design, build, and deploy full stack Next.js client sites on Vercel and handle everything from architecture to launch.",
+    stack: ["Next.js", "TypeScript", "React", "Tailwind CSS", "Vercel"],
+    live: "https://kaveotech.com/",
   },
   {
-    name: "Task Tracker",
-    category: "Personal",
-    image: "/projects/task-tracker.webp",
+    name: "Latter Day Leaders",
+    category: "Product",
+    image: "/projects/latter-day-leaders.webp",
     blurb:
-      "A task tracker I built to explore Flutter and Dart on the frontend with a Python and Django backend.",
-    stack: ["Dart", "Flutter", "Python", "Django"],
-    live: "https://flutter-task-tracker.onrender.com/",
-    repo: "https://github.com/abrower10612/flutter-task-tracker",
-  },
-  {
-    name: "Drawing Queens",
-    category: "Personal",
-    image: "/projects/drawing-queens.webp",
-    blurb:
-      "A for fun app that uses the Deck of Cards API to keep drawing two cards until it pulls the queen of every suit. Built in React.",
-    stack: ["React"],
-    live: "https://drawing-queens-react.onrender.com/",
-    repo: "https://github.com/abrower10612/drawing-queens-react",
+      "A web application I designed and built for leaders in The Church of Jesus Christ of Latter Day Saints, helping them stay organized and focused on the people they serve.",
+    stack: ["TypeScript", "React", "Node.js", "Express", "MongoDB"],
   },
 ];
 
@@ -112,10 +108,10 @@ export function Projects() {
               className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card"
             >
               {/* Screenshot */}
-              <div className="relative aspect-[16/10] overflow-hidden border-b border-border bg-muted">
+              <div className="relative aspect-16/10 overflow-hidden border-b border-border bg-muted">
                 <Image
                   src={project.image}
-                  alt={`${project.name} screenshot`}
+                  alt={project.name}
                   fill
                   sizes="(min-width: 640px) 50vw, 100vw"
                   className="object-cover object-top transition-transform duration-500 group-hover:scale-[1.04]"
@@ -131,9 +127,9 @@ export function Projects() {
                   <span
                     className={cn(
                       "rounded-full border px-2 py-0.5 font-heading text-[11px] font-medium tracking-wide uppercase",
-                      project.category === "Professional"
-                        ? "border-brand/40 text-brand"
-                        : "border-border text-muted-foreground"
+                      project.category === "Personal"
+                        ? "border-border text-muted-foreground"
+                        : "border-brand/40 text-brand"
                     )}
                   >
                     {project.category}
@@ -155,7 +151,8 @@ export function Projects() {
                   ))}
                 </ul>
 
-                <div className="mt-5 flex items-center gap-5">
+                {(project.live || project.repo) && (
+                  <div className="mt-5 flex items-center gap-5">
                   {project.live && (
                     <a
                       href={project.live}
@@ -176,7 +173,8 @@ export function Projects() {
                       <GitHubIcon className="size-4" /> Code
                     </a>
                   )}
-                </div>
+                  </div>
+                )}
               </div>
             </Reveal>
           ))}
