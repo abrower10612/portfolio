@@ -10,7 +10,7 @@ export function Education() {
   return (
     <section
       id="education"
-      className="scroll-mt-16 bg-muted/40 px-4 py-20 sm:px-6 sm:py-24 lg:px-8 lg:py-32"
+      className="scroll-mt-16 px-4 py-20 sm:px-6 sm:py-24 lg:px-8 lg:py-32"
     >
       <div className="mx-auto w-full max-w-6xl">
         <Reveal>
