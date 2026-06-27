@@ -4,7 +4,7 @@ import { About } from "@/components/sections/About";
 import { Stack } from "@/components/sections/Stack";
 import { Work } from "@/components/sections/Work";
 import { Projects } from "@/components/sections/Projects";
-import { Concept } from "@/components/sections/Concept";
+import { Concepts } from "@/components/sections/Concepts";
 import { Education } from "@/components/sections/Education";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { Contact } from "@/components/sections/Contact";
@@ -22,7 +22,7 @@ export default function Home() {
         <Stack />
         <Work />
         <Projects />
-        <Concept />
+        <Concepts />
         <Education />
         <Testimonials />
         <Contact />

@@ -17,16 +17,19 @@ export function Contact() {
           {/* Bold gradient CTA panel — pops on both the light and dark canvas */}
           <div className="relative isolate overflow-hidden rounded-3xl border border-white/10 bg-linear-to-br from-[#15273f] via-[#1d2348] to-[#2c1c4c] p-8 text-paper shadow-2xl sm:p-12 lg:p-16">
             {/* Aurora glows */}
-            <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 -z-10"
+            >
               <div
-                className="hero-drift-alt absolute -top-[35%] -left-[8%] h-[60vmin] w-[60vmin] rounded-full blur-3xl"
+                className="hero-drift-alt absolute top-[-35%] left-[-8%] h-[60vmin] w-[60vmin] rounded-full blur-3xl"
                 style={{
                   background:
                     "radial-gradient(circle, rgb(126 63 158 / 0.55), transparent 60%)",
                 }}
               />
               <div
-                className="hero-drift-alt absolute -right-[6%] -bottom-[45%] h-[55vmin] w-[55vmin] rounded-full blur-3xl"
+                className="hero-drift-alt absolute right-[-6%] bottom-[-45%] h-[55vmin] w-[55vmin] rounded-full blur-3xl"
                 style={{
                   background:
                     "radial-gradient(circle, rgb(242 194 48 / 0.4), transparent 60%)",

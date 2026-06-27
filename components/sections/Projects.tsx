@@ -35,6 +35,15 @@ const PROJECTS: Project[] = [
     live: "https://www.taxcredible.com/",
   },
   {
+    name: "Kaveotech",
+    category: "Professional",
+    image: "/projects/kaveotech.webp",
+    blurb:
+      "The web development and digital marketing agency I founded and run, serving contractors and home services businesses. I design, build, and deploy full stack Next.js client sites on Vercel and handle everything from architecture to launch.",
+    stack: ["Next.js", "TypeScript", "React", "Tailwind CSS", "Vercel"],
+    live: "https://kaveotech.com/",
+  },
+  {
     name: "Cocoa Gift Cards",
     category: "Professional",
     image: "/projects/cocoa-gift-cards.webp",
@@ -51,15 +60,6 @@ const PROJECTS: Project[] = [
       "An event and ticketing platform with customizable ticket types, onsite redemption, and attendance tracking. I built full stack features across the web app and a companion mobile app.",
     stack: ["TypeScript", "React", "Recoil", "Node.js", "Express", "Java", "Android", "Firebase"],
     live: "https://www.cocoatickets.com/",
-  },
-  {
-    name: "Kaveotech",
-    category: "Professional",
-    image: "/projects/kaveotech.webp",
-    blurb:
-      "The web development and digital marketing agency I founded and run, serving contractors and home services businesses. I design, build, and deploy full stack Next.js client sites on Vercel and handle everything from architecture to launch.",
-    stack: ["Next.js", "TypeScript", "React", "Tailwind CSS", "Vercel"],
-    live: "https://kaveotech.com/",
   },
   {
     name: "Latter Day Leaders",

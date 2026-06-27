@@ -21,7 +21,7 @@ const NAV_LINKS = [
   { label: "Stack", href: "#stack" },
   { label: "Work", href: "#work" },
   { label: "Projects", href: "#projects" },
-  { label: "Concept", href: "#concept" },
+  { label: "Concepts", href: "#concepts" },
   { label: "Education", href: "#education" },
   { label: "Testimonials", href: "#testimonials" },
   { label: "Contact", href: "#contact" },
