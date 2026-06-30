@@ -68,6 +68,7 @@ const PROJECTS: Project[] = [
     blurb:
       "A web application I designed and built for leaders in The Church of Jesus Christ of Latter Day Saints, helping them stay organized and focused on the people they serve.",
     stack: ["TypeScript", "React", "Node.js", "Express", "MongoDB"],
+    live: "https://latterdayleaders.org/",
   },
 ];
 
