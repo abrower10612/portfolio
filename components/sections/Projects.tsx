@@ -17,6 +17,15 @@ type Project = {
 
 const PROJECTS: Project[] = [
   {
+    name: "Forekala",
+    category: "Product",
+    image: "/projects/forekala.webp",
+    blurb:
+      "A flexible household budgeting product I designed and built, shaped around how families actually manage money. It pairs automatic bank sync through Plaid with smart transaction categorization, real time household collaboration, and an AI assistant powered by Claude, all in a clean single screen view of planned versus spent.",
+    stack: ["Next.js", "TypeScript", "React", "Tailwind CSS", "Plaid", "Vercel"],
+    live: "https://forekala.com/",
+  },
+  {
     name: "BambooHR",
     category: "Professional",
     image: "/projects/bamboohr.webp",
