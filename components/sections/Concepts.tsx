@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
 
+import { GitHubIcon } from "@/components/icons";
 import { Reveal } from "@/components/reveal";
 
 type Concept = {
@@ -9,6 +10,7 @@ type Concept = {
   blurb: string;
   stack: string[];
   live?: string;
+  repo?: string;
 };
 
 const CONCEPTS: Concept[] = [
@@ -19,6 +21,7 @@ const CONCEPTS: Concept[] = [
       "A focused product concept exploring how I would improve a B2B data enrichment platform's list enrichment flow, from uploading a CSV and estimating credits to running enrichments in parallel and reviewing the results.",
     stack: ["Next.js", "TypeScript", "React", "Tailwind CSS"],
     live: "https://leadmagic.andrewbrower.dev/",
+    repo: "https://github.com/abrower10612/leadmagic-demo",
   },
   {
     name: "Tremendous Concept",
@@ -27,6 +30,7 @@ const CONCEPTS: Concept[] = [
       "A concept reimagining the dashboard for a business rewards and payouts platform. It adds something the real product does not have: a contacts system that lets you save recipients once and reuse them when sending gift cards.",
     stack: ["React", "Ruby on Rails", "Railway"],
     live: "https://tremendous.andrewbrower.dev/",
+    repo: "https://github.com/abrower10612/tremendous-concept",
   },
 ];
 
@@ -89,16 +93,28 @@ export function Concepts() {
                   ))}
                 </ul>
 
-                {concept.live && (
+                {(concept.live || concept.repo) && (
                   <div className="mt-5 flex items-center gap-5">
-                    <a
-                      href={concept.live}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 font-heading text-sm font-medium text-foreground transition-colors hover:text-brand"
-                    >
-                      Live demo <ArrowUpRight className="size-4" />
-                    </a>
+                    {concept.live && (
+                      <a
+                        href={concept.live}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 font-heading text-sm font-medium text-foreground transition-colors hover:text-brand"
+                      >
+                        Live demo <ArrowUpRight className="size-4" />
+                      </a>
+                    )}
+                    {concept.repo && (
+                      <a
+                        href={concept.repo}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 font-heading text-sm font-medium text-foreground transition-colors hover:text-brand"
+                      >
+                        <GitHubIcon className="size-4" /> Code
+                      </a>
+                    )}
                   </div>
                 )}
               </div>
