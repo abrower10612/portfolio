@@ -20,6 +20,14 @@ const CONCEPTS: Concept[] = [
     stack: ["Next.js", "TypeScript", "React", "Tailwind CSS"],
     live: "https://leadmagic.andrewbrower.dev/",
   },
+  {
+    name: "Tremendous Concept",
+    image: "/concepts/tremendous.webp",
+    blurb:
+      "A concept reimagining the dashboard for a business rewards and payouts platform. It adds something the real product does not have: a contacts system that lets you save recipients once and reuse them when sending gift cards.",
+    stack: ["React", "Ruby on Rails", "Railway"],
+    live: "https://tremendous.andrewbrower.dev/",
+  },
 ];
 
 export function Concepts() {
