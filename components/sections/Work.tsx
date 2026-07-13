@@ -10,10 +10,10 @@ type Role = {
 const ROLES: Role[] = [
   {
     company: "Kaveotech",
-    role: "Owner & Founder",
+    role: "Full Stack Software Engineer",
     dates: "2025 to Present",
     description:
-      "Founded and run a web development and digital marketing agency serving home services businesses. I build and deploy full stack Next.js client sites on Vercel, owning the whole lifecycle from architecture to production, and I manage the technical infrastructure like DNS, hosting, and domains across multiple client accounts.",
+      "Founded and run a full service tech agency delivering web design, content marketing, SEO, and custom app development for small and mid sized businesses. I build and deploy full stack Next.js applications on Vercel, owning the whole lifecycle from architecture to production, and I manage the technical infrastructure like DNS, hosting, and domains across multiple client accounts.",
   },
   {
     company: "BambooHR",
