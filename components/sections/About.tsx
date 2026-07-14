@@ -20,12 +20,12 @@ export function About() {
             with a strong foundation in TypeScript, React, and Next.js. Most
             recently I was a key contributor to a company wide frontend
             migration from legacy PHP Twig to modern React at BambooHR, where I
-            also served as Scrum Master. Today I run Kaveotech, a web
-            development agency I founded, where I design, build, and deploy full
-            stack Next.js applications end to end. Before engineering, I spent
-            several years in enterprise B2B sales, so I bring a practical
-            understanding of how go to market teams operate to everything I
-            build.
+            also served as Scrum Master. Through Kaveotech I do full stack
+            contract work for clients across industries, designing, building,
+            and deploying Next.js applications end to end from architecture to
+            production. Before engineering, I spent several years in enterprise
+            B2B sales, so I bring a practical understanding of how go to market
+            teams operate to everything I build.
           </p>
         </Reveal>
 
