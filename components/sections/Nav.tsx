@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/sheet";
 import { LogoMark } from "@/components/logo-mark";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { GameModeButton } from "@/components/game/game-mode-button";
 
 // Anchor links shown in the mobile menu. Hero is intentionally omitted
 // (the logo / top of page serves that role).
@@ -42,6 +43,7 @@ export function Nav() {
 
         {/* Right: theme toggle is always visible; CTA on desktop, hamburger on mobile */}
         <div className="flex items-center gap-1 sm:gap-2">
+          <GameModeButton />
           <ThemeToggle />
 
           {/* Desktop CTA — anchors to the contact section */}

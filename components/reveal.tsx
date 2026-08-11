@@ -21,6 +21,9 @@ export function Reveal({ children, className, delay = 0, y = 24 }: RevealProps) 
 
   return (
     <motion.div
+      // Tagged so game mode can force every reveal visible — while playing, the
+      // whole page is level geometry, including parts you haven't scrolled to.
+      data-reveal
       className={className}
       initial={reduce ? false : { opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}

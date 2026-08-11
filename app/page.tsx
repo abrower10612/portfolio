@@ -9,12 +9,15 @@ import { Education } from "@/components/sections/Education";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { Contact } from "@/components/sections/Contact";
 import { Footer } from "@/components/sections/Footer";
+import { GameModeProvider } from "@/components/game/game-mode-context";
+import { GameMode } from "@/components/game/game-mode";
 
 // Single scrollable one-pager. Sections render in order; the fixed Nav
-// sits above the flow and Footer closes it out.
+// sits above the flow and Footer closes it out. The GameMode provider wraps
+// everything so the Nav toggle and the game layer share one flag.
 export default function Home() {
   return (
-    <>
+    <GameModeProvider>
       <Nav />
       <main className="flex-1">
         <Hero />
@@ -28,6 +31,7 @@ export default function Home() {
         <Contact />
       </main>
       <Footer />
-    </>
+      <GameMode />
+    </GameModeProvider>
   );
 }
