@@ -586,22 +586,6 @@ html[data-game-active] [data-reveal] {
   }
 }
 
-/* Smoke: pooled puffs, animated by the simulation with the Web Animations API
-   and left hanging in page space rather than riding with the ship. */
-.game-smoke {
-  width: 16px;
-  height: 16px;
-  border-radius: 999px;
-  opacity: 0;
-  background: radial-gradient(
-    circle at 40% 40%,
-    rgb(226 232 240 / 0.85),
-    rgb(148 163 184 / 0.45) 55%,
-    rgb(100 116 139 / 0) 75%
-  );
-  will-change: transform, opacity, scale;
-}
-
 /* Sparks thrown while grinding along the hero badge. */
 .rocket-scrape {
   opacity: 0;

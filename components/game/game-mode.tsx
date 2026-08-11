@@ -56,9 +56,6 @@ const SLIDE_ROT = 98; // settles flat as it grinds along
 const SLIDE_FRICTION = 250; // px/s² — slow enough to reach the far end
 const SLIDE_SETTLE = 340; // px of travel to finish rotating flat over
 const INTRO_MIN = 1.9; // hand over control no earlier than this
-const SMOKE_EVERY = 0.055; // seconds between trail puffs
-const SMOKE_COUNT = 26; // pooled puff elements
-const SMOKE_DRIFT = 150; // px a puff travels against the ship's heading
 const ROCKET_FALL_G = 3000;
 const ROCKET_FALL_MAX = 5200;
 const CRASHED_ROT = 74; // degrees — lying against the footer
@@ -337,10 +334,6 @@ type StoryState = {
   parkX: number;
   floorY: number;
   slideFrom: number;
-  smokeT: number;
-  smokeAt: number;
-  lastX: number;
-  lastY: number;
   boardX: number;
 };
 
@@ -359,20 +352,6 @@ const ROCKET_CORNERS: [number, number][] = [
   [-17, -(ROCKET_H - 53)], // fin tips
   [17, -(ROCKET_H - 53)],
 ];
-
-/**
- * Where a point on the ship's artwork actually is on the page, given that the
- * ship is rotated about the bottom-centre of its box. Used to emit smoke from
- * the engine bell and sparks from the nose wherever they happen to be pointing.
- */
-function rocketPoint(r: RocketState, lx: number, ly: number): [number, number] {
-  const th = (r.rot * Math.PI) / 180;
-  const sin = Math.sin(th);
-  const cos = Math.cos(th);
-  const dx = lx - ROCKET_W / 2;
-  const dy = ly - ROCKET_H;
-  return [r.x + ROCKET_W / 2 + dx * cos - dy * sin, r.y + dx * sin + dy * cos];
-}
 
 function rocketDrop(rot: number): number {
   const th = (rot * Math.PI) / 180;
@@ -400,9 +379,6 @@ function resetStory(
   st.t = 0;
   st.poppedOut = false;
   st.slideFrom = 0;
-  st.smokeT = 0;
-  st.lastX = r.x;
-  st.lastY = r.y;
   // Parked dead centre at the bottom, so it is easy to find on the way back.
   st.parkX = Math.max(8, (docWidth - ROCKET_W) / 2);
   st.floorY = floorY;
@@ -471,13 +447,8 @@ function GameRunner({ onExit }: { onExit: () => void }) {
     parkX: 0,
     floorY: 0,
     slideFrom: 0,
-    smokeT: 0,
-    smokeAt: 0,
-    lastX: 0,
-    lastY: 0,
     boardX: 0,
   });
-  const smokeRefs = React.useRef<(HTMLDivElement | null)[]>([]);
 
   // `y` is the player's FEET, so landing is just "did the feet cross a ledge".
   const sim = React.useRef({
@@ -846,53 +817,6 @@ function GameRunner({ onExit }: { onExit: () => void }) {
       const st = story.current;
       const t = st.t;
 
-      // A puff of smoke, placed in page space so it hangs where it was made
-      // rather than riding along with the ship.
-      const puff = (x: number, y: number, size: number, dx: number, dy: number) => {
-        const el = smokeRefs.current[st.smokeAt % SMOKE_COUNT];
-        st.smokeAt++;
-        if (!el) return;
-        el.style.width = `${size}px`;
-        el.style.height = `${size}px`;
-        // `transform` places it; the animation drifts it with the individual
-        // `translate` property so the two never fight.
-        el.style.transform = `translate3d(${x - size / 2}px, ${y - size / 2}px, 0)`;
-        el.animate(
-          [
-            { opacity: 0.55, scale: "0.4", translate: "0px 0px" },
-            { opacity: 0, scale: "1.5", translate: `${dx}px ${dy}px` },
-          ],
-          { duration: 1100, easing: "ease-out", fill: "forwards" }
-        );
-      };
-
-      // Trailing smoke. Each puff is thrown *against* the ship's current
-      // heading, so it streams away from the source however the ship is moving:
-      // left while it slides right, upward while it falls.
-      const travelX = dt > 0 ? (r.x - st.lastX) / dt : 0;
-      const travelY = dt > 0 ? (r.y - st.lastY) / dt : 0;
-      st.lastX = r.x;
-      st.lastY = r.y;
-
-      if (r.mode === "fly" || r.mode === "fall" || r.mode === "slide") {
-        st.smokeT += dt;
-        if (st.smokeT >= SMOKE_EVERY) {
-          st.smokeT = 0;
-          // Out of the engine bell, wherever the ship happens to be pointing.
-          const [ex, ey] = rocketPoint(r, ROCKET_W / 2, 56);
-          const speed = Math.hypot(travelX, travelY) || 1;
-          const spread = ((st.smokeAt * 53) % 19) - 9;
-          const jitter = ((st.smokeAt * 37) % 11) - 5;
-          puff(
-            ex + jitter,
-            ey + jitter,
-            13 + (st.smokeAt % 3) * 4,
-            (-travelX / speed) * SMOKE_DRIFT + spread,
-            (-travelY / speed) * SMOKE_DRIFT * 0.6 - 20 + spread * 0.5
-          );
-        }
-      }
-
       // The ship's fall is independent of phase so it can finish during play.
       if (r.mode === "fall") {
         r.vy = Math.min(ROCKET_FALL_MAX, r.vy + ROCKET_FALL_G * dt);
@@ -909,9 +833,6 @@ function GameRunner({ onExit }: { onExit: () => void }) {
           r.vx = 0;
           r.x = st.parkX;
           r.mode = "parked";
-          for (let i = 0; i < 5; i++) {
-            puff(r.x + 2 + i * 9, st.floorY - 10 - (i % 2) * 8, 22, -70 + i * 26, -52 - (i % 2) * 12);
-          }
         }
       }
 
@@ -936,8 +857,8 @@ function GameRunner({ onExit }: { onExit: () => void }) {
             r.y = 2 + (touchdown - 2) * k * k;
 
             if (k >= 1) {
-              // Contact. Sparks, a burst of smoke, and the robot bails out
-              // immediately while the ship keeps grinding along.
+              // Contact. Sparks fly and the robot bails out immediately, while
+              // the ship keeps grinding along.
               r.y = touchdown;
               r.rot = IMPACT_ROT;
               r.mode = "slide";
@@ -949,10 +870,6 @@ function GameRunner({ onExit }: { onExit: () => void }) {
               s.vx = 80;
               s.grounded = false;
               s.squash = 0;
-              const [nx, ny] = rocketPoint(r, ROCKET_W / 2, 6);
-              for (let i = 0; i < 6; i++) {
-                puff(nx - 10 + i * 6, ny - (i % 3) * 8, 17 + (i % 2) * 6, -80 - i * 14, -44 - i * 6);
-              }
             }
           } else if (r.mode === "slide") {
             // Momentum from the crash, bleeding off against the badge.
@@ -1193,16 +1110,6 @@ function GameRunner({ onExit }: { onExit: () => void }) {
               height: JEWEL,
               animationDelay: `${(i % 5) * 0.16}s`,
             }}
-          />
-        ))}
-
-        {Array.from({ length: SMOKE_COUNT }, (_, i) => (
-          <div
-            key={i}
-            ref={(el) => {
-              smokeRefs.current[i] = el;
-            }}
-            className="game-smoke absolute top-0 left-0"
           />
         ))}
 
