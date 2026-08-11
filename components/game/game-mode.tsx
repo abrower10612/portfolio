@@ -4,8 +4,10 @@ import * as React from "react";
 import { createPortal } from "react-dom";
 import { Gem, Trophy } from "lucide-react";
 
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Bot } from "@/components/game/bot";
+import { Rocket } from "@/components/game/rocket";
 import { useGameMode } from "@/components/game/game-mode-context";
 
 /* =========================================================================
@@ -31,10 +33,39 @@ const JUMP_BUFFER = 0.12; // pressing jump just before landing still fires
 const DROP_THROUGH = 0.3; // seconds the dropped-from platform stays disabled
 
 const JEWEL = 20;
-const JEWEL_TARGET = 20; // exactly this many, spread down the page
+/** The page is always cut into this many bands, one jewel per band. */
+const JEWEL_SPREAD = 20;
+/**
+ * How many of those bands actually get a jewel. Development takes only the
+ * first, so the whole story (crash → collect → repair → launch) can be replayed
+ * in seconds; production wants the full set.
+ */
+const JEWEL_TARGET = process.env.NODE_ENV === "development" ? 1 : JEWEL_SPREAD;
 const PICKUP_PAD = 6; // generous pickup box
 const FLOOR_INSET = 8; // keeps the boots (and their exhaust) inside the page
 const LAND_SQUASH_V = 260; // impact speed that earns a squash on landing
+
+/* ---- the rocket, and the story beats it plays out ---- */
+const ROCKET_W = 36;
+const ROCKET_H = 64;
+const ENTRY_TIME = 0.58; // streaking in, nose down
+const ENTRY_DX = 330; // horizontal ground covered on the way in
+const ENTRY_ROT = 142; // nose pointing down-and-right along the descent
+const IMPACT_ROT = 116; // slams onto its side
+const SLIDE_ROT = 98; // settles flat as it grinds along
+const SLIDE_FRICTION = 250; // px/s² — slow enough to reach the far end
+const SLIDE_SETTLE = 340; // px of travel to finish rotating flat over
+const INTRO_MIN = 1.9; // hand over control no earlier than this
+const SMOKE_EVERY = 0.055; // seconds between trail puffs
+const SMOKE_COUNT = 26; // pooled puff elements
+const SMOKE_DRIFT = 150; // px a puff travels against the ship's heading
+const ROCKET_FALL_G = 3000;
+const ROCKET_FALL_MAX = 5200;
+const CRASHED_ROT = 74; // degrees — lying against the footer
+const REPAIR_TIME = 1.9; // sparks and straightening up
+const BOARD_TIME = 0.4; // robot hops in
+const LIFTOFF_AT = 0.75; // rumble, then go
+const LAUNCH_G = 2800;
 
 /**
  * Elements whose painted box IS the surface — chips, badges, buttons, media.
@@ -204,16 +235,17 @@ function jewelScore(p: Platform): number {
 
 /**
  * Place exactly JEWEL_TARGET jewels, spread down the page. The page is cut into
- * that many equal bands and the most interesting surface in each one gets a
- * jewel; bands with nothing in them (the page has a few 500px+ gaps) are made up
- * by picking whichever remaining surface sits furthest from every jewel so far.
+ * JEWEL_SPREAD equal bands and the most interesting surface in the first
+ * JEWEL_TARGET of them gets a jewel; empty bands (the page has a few 500px+
+ * gaps) are made up by picking whichever remaining surface sits furthest from
+ * every jewel so far.
  */
 function buildJewels(platforms: Platform[], docHeight: number): Jewel[] {
   if (!platforms.length) return [];
 
   const chosen: Platform[] = [];
   const used = new Set<Platform>();
-  const band = docHeight / JEWEL_TARGET;
+  const band = docHeight / JEWEL_SPREAD;
 
   for (let b = 0; b < JEWEL_TARGET; b++) {
     const lo = b * band;
@@ -271,7 +303,110 @@ export function GameMode() {
   return <GameRunner onExit={exit} />;
 }
 
+/**
+ * Status banners sit top-left, under the fixed header and opposite the score
+ * chips — the rocket is parked at the bottom centre, so anything along the
+ * bottom edge would cover it exactly when you are trying to reach it.
+ */
+const BANNER =
+  "pointer-events-none fixed top-20 left-4 z-60 max-w-xs rounded-xl border border-border bg-card/95 p-4 shadow-lg backdrop-blur sm:left-6 lg:left-8";
+
 type Level = { platforms: Platform[]; jewels: Jewel[]; docHeight: number };
+
+/**
+ * intro  — the ship crash-lands, the robot bails out, the ship falls away
+ * play   — collect the jewels
+ * repair — all jewels in hand and back at the ship: patch it up
+ * launch — climb in and go
+ * won    — the overlay
+ */
+type Phase = "intro" | "play" | "repair" | "launch" | "won";
+type RocketMode = "fly" | "slide" | "fall" | "parked" | "repair" | "launch";
+
+type RocketState = {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  rot: number;
+  mode: RocketMode;
+};
+type StoryState = {
+  t: number;
+  poppedOut: boolean;
+  parkX: number;
+  floorY: number;
+  slideFrom: number;
+  smokeT: number;
+  smokeAt: number;
+  lastX: number;
+  lastY: number;
+  boardX: number;
+};
+
+/**
+ * The ship is positioned by the bottom-centre of its box, which is also its
+ * rotation pivot — so once it is tipped onto its side, its hull swings below
+ * that point. This returns how far below the pivot its lowest corner ends up at
+ * a given rotation, so it can be made to rest *on* a surface rather than sink
+ * into it. Silhouette corners are the hull box plus the fin tips.
+ */
+const ROCKET_CORNERS: [number, number][] = [
+  [-9.5, -(ROCKET_H - 1.5)], // nose, left
+  [9.5, -(ROCKET_H - 1.5)], // nose, right
+  [-9.5, -(ROCKET_H - 51.5)], // tail, left
+  [9.5, -(ROCKET_H - 51.5)], // tail, right
+  [-17, -(ROCKET_H - 53)], // fin tips
+  [17, -(ROCKET_H - 53)],
+];
+
+/**
+ * Where a point on the ship's artwork actually is on the page, given that the
+ * ship is rotated about the bottom-centre of its box. Used to emit smoke from
+ * the engine bell and sparks from the nose wherever they happen to be pointing.
+ */
+function rocketPoint(r: RocketState, lx: number, ly: number): [number, number] {
+  const th = (r.rot * Math.PI) / 180;
+  const sin = Math.sin(th);
+  const cos = Math.cos(th);
+  const dx = lx - ROCKET_W / 2;
+  const dy = ly - ROCKET_H;
+  return [r.x + ROCKET_W / 2 + dx * cos - dy * sin, r.y + dx * sin + dy * cos];
+}
+
+function rocketDrop(rot: number): number {
+  const th = (rot * Math.PI) / 180;
+  const sin = Math.sin(th);
+  const cos = Math.cos(th);
+  let low = -Infinity;
+  for (const [dx, dy] of ROCKET_CORNERS) low = Math.max(low, dx * sin + dy * cos);
+  return low;
+}
+
+/** Puts the ship back at the top of its entrance, ready to crash in again. */
+function resetStory(
+  r: RocketState,
+  st: StoryState,
+  startX: number,
+  docWidth: number,
+  floorY: number
+) {
+  r.x = Math.max(4, startX - ENTRY_DX);
+  r.y = 2;
+  r.vx = ENTRY_DX / ENTRY_TIME;
+  r.vy = 0;
+  r.rot = ENTRY_ROT;
+  r.mode = "fly";
+  st.t = 0;
+  st.poppedOut = false;
+  st.slideFrom = 0;
+  st.smokeT = 0;
+  st.lastX = r.x;
+  st.lastY = r.y;
+  // Parked dead centre at the bottom, so it is easy to find on the way back.
+  st.parkX = Math.max(8, (docWidth - ROCKET_W) / 2);
+  st.floorY = floorY;
+}
 
 function GameRunner({ onExit }: { onExit: () => void }) {
   // The level is measured once, lazily, on the first render of the running
@@ -290,18 +425,27 @@ function GameRunner({ onExit }: { onExit: () => void }) {
   );
 
   const [collected, setCollected] = React.useState<Set<number>>(new Set());
-  const [won, setWon] = React.useState(false);
+  const [phase, setPhase] = React.useState<Phase>("intro");
   const [showHelp, setShowHelp] = React.useState(true);
   const [elapsed, setElapsed] = React.useState(0);
 
   const playerRef = React.useRef<HTMLDivElement>(null);
+  const rocketRef = React.useRef<HTMLDivElement>(null);
   const touchRef = React.useRef<HTMLDivElement>(null);
   const platformsRef = React.useRef<Platform[]>(level.platforms);
   const docHeightRef = React.useRef(level.docHeight);
   const jewelsRef = React.useRef<Jewel[]>(level.jewels);
   const collectedRef = React.useRef<Set<number>>(new Set());
-  const wonRef = React.useRef(false);
   const startedAtRef = React.useRef(0);
+
+  // The phase lives in a ref as well, because the simulation reads it every
+  // frame and must not wait for a re-render.
+  const phaseRef = React.useRef<Phase>("intro");
+  const goPhase = React.useCallback((next: Phase) => {
+    phaseRef.current = next;
+    story.current.t = 0;
+    setPhase(next);
+  }, []);
 
   const { jewels, docHeight } = level;
 
@@ -310,7 +454,30 @@ function GameRunner({ onExit }: { onExit: () => void }) {
   const input = React.useRef({ axis: 0, jumpHeld: false, jumpBuffer: 0, down: false });
 
   // Last-written sprite attributes, so we only touch the DOM when they change.
-  const visual = React.useRef({ face: "right", state: "idle" });
+  const visual = React.useRef({ face: "right", state: "idle", hidden: false, rocket: "" });
+
+  // The ship. `y` is its base, like the player's feet.
+  const rocket = React.useRef<RocketState>({
+    x: 0,
+    y: 0,
+    vx: 0,
+    vy: 0,
+    rot: ENTRY_ROT,
+    mode: "fly",
+  });
+  const story = React.useRef<StoryState>({
+    t: 0,
+    poppedOut: false,
+    parkX: 0,
+    floorY: 0,
+    slideFrom: 0,
+    smokeT: 0,
+    smokeAt: 0,
+    lastX: 0,
+    lastY: 0,
+    boardX: 0,
+  });
+  const smokeRefs = React.useRef<(HTMLDivElement | null)[]>([]);
 
   // `y` is the player's FEET, so landing is just "did the feet cross a ledge".
   const sim = React.useRef({
@@ -341,6 +508,14 @@ function GameRunner({ onExit }: { onExit: () => void }) {
       sim.current.x = start.x + 10;
       sim.current.y = start.y;
     }
+
+    resetStory(
+      rocket.current,
+      story.current,
+      start ? start.x : 0,
+      document.documentElement.clientWidth,
+      docHeightRef.current - FLOOR_INSET
+    );
     startedAtRef.current = performance.now();
     window.scrollTo({ top: 0, behavior: "instant" });
 
@@ -518,7 +693,7 @@ function GameRunner({ onExit }: { onExit: () => void }) {
       pad.removeEventListener("pointerup", onUp);
       pad.removeEventListener("pointercancel", onUp);
     };
-  }, [isTouch, won]);
+  }, [isTouch, phase]);
 
   /* ---------------- resize ---------------- */
   React.useEffect(() => {
@@ -545,13 +720,13 @@ function GameRunner({ onExit }: { onExit: () => void }) {
 
   /* ---------------- timer ---------------- */
   React.useEffect(() => {
-    if (won) return;
+    if (phase !== "play") return;
     const id = window.setInterval(
       () => setElapsed((performance.now() - startedAtRef.current) / 1000),
       250
     );
     return () => window.clearInterval(id);
-  }, [won]);
+  }, [phase]);
 
   /* ---------------- simulation ---------------- */
   React.useEffect(() => {
@@ -564,7 +739,7 @@ function GameRunner({ onExit }: { onExit: () => void }) {
       const s = sim.current;
       const inp = input.current;
       const plats = platformsRef.current;
-      const frozen = wonRef.current;
+      const frozen = phaseRef.current !== "play";
 
       // ---- horizontal ----
       const target = frozen ? 0 : inp.axis * MAX_RUN;
@@ -660,14 +835,194 @@ function GameRunner({ onExit }: { onExit: () => void }) {
       s.squash = Math.max(0, s.squash - dt * 6);
     };
 
+    /**
+     * The scripted beats. Runs on real frame time (not the fixed physics step)
+     * and only ever moves the ship — the robot stays under the simulation, so it
+     * lands on the badge and falls to the footer using the same physics as play.
+     */
+    const tellStory = (dt: number) => {
+      const s = sim.current;
+      const r = rocket.current;
+      const st = story.current;
+      const t = st.t;
+
+      // A puff of smoke, placed in page space so it hangs where it was made
+      // rather than riding along with the ship.
+      const puff = (x: number, y: number, size: number, dx: number, dy: number) => {
+        const el = smokeRefs.current[st.smokeAt % SMOKE_COUNT];
+        st.smokeAt++;
+        if (!el) return;
+        el.style.width = `${size}px`;
+        el.style.height = `${size}px`;
+        // `transform` places it; the animation drifts it with the individual
+        // `translate` property so the two never fight.
+        el.style.transform = `translate3d(${x - size / 2}px, ${y - size / 2}px, 0)`;
+        el.animate(
+          [
+            { opacity: 0.55, scale: "0.4", translate: "0px 0px" },
+            { opacity: 0, scale: "1.5", translate: `${dx}px ${dy}px` },
+          ],
+          { duration: 1100, easing: "ease-out", fill: "forwards" }
+        );
+      };
+
+      // Trailing smoke. Each puff is thrown *against* the ship's current
+      // heading, so it streams away from the source however the ship is moving:
+      // left while it slides right, upward while it falls.
+      const travelX = dt > 0 ? (r.x - st.lastX) / dt : 0;
+      const travelY = dt > 0 ? (r.y - st.lastY) / dt : 0;
+      st.lastX = r.x;
+      st.lastY = r.y;
+
+      if (r.mode === "fly" || r.mode === "fall" || r.mode === "slide") {
+        st.smokeT += dt;
+        if (st.smokeT >= SMOKE_EVERY) {
+          st.smokeT = 0;
+          // Out of the engine bell, wherever the ship happens to be pointing.
+          const [ex, ey] = rocketPoint(r, ROCKET_W / 2, 56);
+          const speed = Math.hypot(travelX, travelY) || 1;
+          const spread = ((st.smokeAt * 53) % 19) - 9;
+          const jitter = ((st.smokeAt * 37) % 11) - 5;
+          puff(
+            ex + jitter,
+            ey + jitter,
+            13 + (st.smokeAt % 3) * 4,
+            (-travelX / speed) * SMOKE_DRIFT + spread,
+            (-travelY / speed) * SMOKE_DRIFT * 0.6 - 20 + spread * 0.5
+          );
+        }
+      }
+
+      // The ship's fall is independent of phase so it can finish during play.
+      if (r.mode === "fall") {
+        r.vy = Math.min(ROCKET_FALL_MAX, r.vy + ROCKET_FALL_G * dt);
+        r.y += r.vy * dt;
+        r.rot += 120 * dt;
+        // Carries its momentum off the ledge, then drifts to the parking spot.
+        r.x += r.vx * dt;
+        r.vx *= Math.max(0, 1 - dt * 1.9);
+        r.x += (st.parkX - r.x) * Math.min(1, dt * 1.1);
+        if (r.y >= st.floorY - rocketDrop(CRASHED_ROT)) {
+          r.rot = CRASHED_ROT;
+          r.y = st.floorY - rocketDrop(CRASHED_ROT);
+          r.vy = 0;
+          r.vx = 0;
+          r.x = st.parkX;
+          r.mode = "parked";
+          for (let i = 0; i < 5; i++) {
+            puff(r.x + 2 + i * 9, st.floorY - 10 - (i % 2) * 8, 22, -70 + i * 26, -52 - (i % 2) * 12);
+          }
+        }
+      }
+
+      switch (phaseRef.current) {
+        case "intro": {
+          const start = platformsRef.current[0];
+          const badgeY = start ? start.y : 200;
+          const badgeX = start ? start.x : 0;
+
+          const badgeW = start ? start.w : 300;
+          // Comes down nose-first from the upper left at a constant clip, hits
+          // the badge, and keeps that speed into the slide — no stall at the
+          // moment of contact.
+          const runOff = badgeX + Math.max(90, badgeW - ROCKET_W * 0.7);
+
+          if (r.mode === "fly") {
+            const k = Math.min(1, t / ENTRY_TIME);
+            r.x += r.vx * dt;
+            r.rot = ENTRY_ROT - (ENTRY_ROT - IMPACT_ROT) * k;
+            // Falls faster and faster on the way in.
+            const touchdown = badgeY - rocketDrop(IMPACT_ROT);
+            r.y = 2 + (touchdown - 2) * k * k;
+
+            if (k >= 1) {
+              // Contact. Sparks, a burst of smoke, and the robot bails out
+              // immediately while the ship keeps grinding along.
+              r.y = touchdown;
+              r.rot = IMPACT_ROT;
+              r.mode = "slide";
+              st.slideFrom = r.x;
+              st.poppedOut = true;
+              s.x = r.x;
+              s.y = badgeY - 4;
+              s.vy = -455;
+              s.vx = 80;
+              s.grounded = false;
+              s.squash = 0;
+              const [nx, ny] = rocketPoint(r, ROCKET_W / 2, 6);
+              for (let i = 0; i < 6; i++) {
+                puff(nx - 10 + i * 6, ny - (i % 3) * 8, 17 + (i % 2) * 6, -80 - i * 14, -44 - i * 6);
+              }
+            }
+          } else if (r.mode === "slide") {
+            // Momentum from the crash, bleeding off against the badge.
+            r.x += r.vx * dt;
+            r.vx = Math.max(0, r.vx - SLIDE_FRICTION * dt);
+            const settled = Math.min(1, (r.x - st.slideFrom) / SLIDE_SETTLE);
+            r.rot = IMPACT_ROT + (SLIDE_ROT - IMPACT_ROT) * settled;
+            r.y = badgeY - rocketDrop(r.rot);
+
+            // Over the end of the badge (or out of steam): down it goes.
+            if (r.x >= runOff || r.vx <= 6) {
+              r.mode = "fall";
+              r.vy = 70;
+            }
+          }
+
+          if (t > INTRO_MIN && s.grounded) goPhase("play");
+          break;
+        }
+
+        case "repair": {
+          // Straighten the ship up while the sparks fly.
+          const k = Math.min(1, t / (REPAIR_TIME * 0.75));
+          r.rot = CRASHED_ROT * (1 - k * k);
+          // Stays planted on the footer as it straightens up.
+          r.y = st.floorY - rocketDrop(r.rot);
+          r.mode = "repair";
+          if (t > REPAIR_TIME) {
+            r.rot = 0;
+            r.mode = "launch";
+            goPhase("launch");
+          }
+          break;
+        }
+
+        case "launch": {
+          if (t < BOARD_TIME) {
+            // A little hop across to the hatch.
+            const k = t / BOARD_TIME;
+            const hatch = r.x + (ROCKET_W - PLAYER_W) / 2;
+            s.x = st.boardX + (hatch - st.boardX) * k;
+            s.y = st.floorY - Math.sin(k * Math.PI) * 28;
+            s.vx = 0;
+            s.vy = 0;
+          }
+          if (t > LIFTOFF_AT) {
+            r.vy -= LAUNCH_G * dt;
+            r.y += r.vy * dt;
+            // The robot is aboard and hidden, and deliberately left standing at
+            // the footer — so the camera holds still and the ship flies out of
+            // frame, rather than the view chasing it back up the whole page.
+            if (r.y < window.scrollY - ROCKET_H * 3) goPhase("won");
+          }
+          break;
+        }
+      }
+    };
+
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame);
-      acc += Math.min(0.05, (now - last) / 1000);
+      const dt = Math.min(0.05, (now - last) / 1000);
+      acc += dt;
       last = now;
       while (acc >= STEP) {
         step(STEP);
         acc -= STEP;
       }
+
+      story.current.t += dt;
+      tellStory(dt);
 
       const s = sim.current;
       const top = s.y - PLAYER_H;
@@ -684,7 +1039,7 @@ function GameRunner({ onExit }: { onExit: () => void }) {
       if (Math.abs(want - window.scrollY) > 0.5) window.scrollTo(0, want);
 
       // ---- pickups ----
-      if (!wonRef.current) {
+      if (phaseRef.current === "play") {
         const picked: number[] = [];
         const js = jewelsRef.current;
         for (let i = 0; i < js.length; i++) {
@@ -702,10 +1057,25 @@ function GameRunner({ onExit }: { onExit: () => void }) {
         if (picked.length) {
           picked.forEach((i) => collectedRef.current.add(i));
           setCollected(new Set(collectedRef.current));
-          if (collectedRef.current.size === js.length && js.length > 0) {
-            wonRef.current = true;
-            setWon(true);
+        }
+
+        // Every jewel in hand and standing at the ship: start the repair.
+        const r = rocket.current;
+        const done = js.length > 0 && collectedRef.current.size === js.length;
+        if (done && r.mode === "parked") {
+          const reach = 16;
+          if (
+            s.x + PLAYER_W > r.x - reach &&
+            s.x < r.x + ROCKET_W + reach &&
+            s.y > r.y - ROCKET_H &&
+            top < r.y + reach
+          ) {
             setElapsed((performance.now() - startedAtRef.current) / 1000);
+            s.vx = 0;
+            s.x = r.x - PLAYER_W - 4;
+            story.current.boardX = s.x;
+            r.mode = "repair";
+            goPhase("repair");
           }
         }
       }
@@ -734,18 +1104,40 @@ function GameRunner({ onExit }: { onExit: () => void }) {
           v.state = state;
           el.dataset.state = state;
         }
+
+        // Hidden before it bails out of the ship, and again once it climbs in.
+        const ph = phaseRef.current;
+        const hidden =
+          (ph === "intro" && !story.current.poppedOut) ||
+          (ph === "launch" && story.current.t > BOARD_TIME) ||
+          ph === "won";
+        if (hidden !== v.hidden) {
+          v.hidden = hidden;
+          if (hidden) el.dataset.hidden = "true";
+          else delete el.dataset.hidden;
+        }
+      }
+
+      const rk = rocketRef.current;
+      if (rk) {
+        const r = rocket.current;
+        rk.style.transform =
+          `translate3d(${r.x.toFixed(1)}px, ${(r.y - ROCKET_H).toFixed(1)}px, 0)` +
+          ` rotate(${r.rot.toFixed(1)}deg)`;
+        if (r.mode !== visual.current.rocket) {
+          visual.current.rocket = r.mode;
+          rk.dataset.rocket = r.mode;
+        }
       }
     };
 
     raf = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(raf);
-  }, []);
+  }, [goPhase]);
 
   const restart = () => {
     collectedRef.current = new Set();
     setCollected(new Set());
-    wonRef.current = false;
-    setWon(false);
     const platforms = remeasure(platformsRef.current);
     setLevel({
       platforms,
@@ -765,6 +1157,15 @@ function GameRunner({ onExit }: { onExit: () => void }) {
       dropTimer: 0,
       squash: 0,
     });
+    // Replay the crash landing from the top.
+    resetStory(
+      rocket.current,
+      story.current,
+      start ? start.x : 0,
+      document.documentElement.clientWidth,
+      docHeightRef.current - FLOOR_INSET
+    );
+    goPhase("intro");
     startedAtRef.current = performance.now();
     setElapsed(0);
     window.scrollTo({ top: 0, behavior: "instant" });
@@ -795,19 +1196,41 @@ function GameRunner({ onExit }: { onExit: () => void }) {
           />
         ))}
 
+        {Array.from({ length: SMOKE_COUNT }, (_, i) => (
+          <div
+            key={i}
+            ref={(el) => {
+              smokeRefs.current[i] = el;
+            }}
+            className="game-smoke absolute top-0 left-0"
+          />
+        ))}
+
+        <div
+          ref={rocketRef}
+          className="game-rocket-holder absolute top-0 left-0"
+          style={{ width: ROCKET_W, height: ROCKET_H }}
+          data-rocket="fly"
+        >
+          <Rocket />
+        </div>
+
         <div
           ref={playerRef}
           className="game-player absolute top-0 left-0"
           style={{ width: PLAYER_W, height: PLAYER_H }}
           data-state="idle"
           data-face="right"
+          data-hidden="true"
         >
           <Bot />
         </div>
       </div>
 
       {/* Touch input surface — listeners are attached in an effect above. */}
-      {isTouch && !won && <div ref={touchRef} className="fixed inset-0 z-50 touch-none" />}
+      {isTouch && phase === "play" && (
+        <div ref={touchRef} className="fixed inset-0 z-50 touch-none" />
+      )}
 
       {/* HUD */}
       <div className="fixed top-20 right-4 z-60 flex items-center gap-2 sm:right-6 lg:right-8">
@@ -821,10 +1244,12 @@ function GameRunner({ onExit }: { onExit: () => void }) {
         </div>
       </div>
 
-      {showHelp && !won && (
+      {showHelp && phase === "play" && score < total && (
         <div className="pointer-events-none fixed inset-x-4 bottom-6 z-60 mx-auto max-w-md rounded-xl border border-border bg-card/95 p-4 text-center shadow-lg backdrop-blur">
           <p className="font-heading text-sm font-semibold">
-            Collect all {total} jewels on your way down
+            {total === 1
+              ? "Collect the jewel, then get back to the rocket"
+              : `Collect all ${total} jewels on your way down`}
           </p>
           <p className="mt-1.5 text-sm text-pretty text-muted-foreground">
             {isTouch ? (
@@ -843,15 +1268,49 @@ function GameRunner({ onExit }: { onExit: () => void }) {
         </div>
       )}
 
-      {won && (
+      {phase === "intro" && (
+        <div className={BANNER}>
+          <p className="font-heading text-sm font-semibold">Incoming…</p>
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            A little robot just crash-landed on this page.
+          </p>
+        </div>
+      )}
+
+      {phase === "play" && total > 0 && score === total && (
+        <div className={cn(BANNER, "border-brand/40")}>
+          <p className="font-heading text-sm font-semibold text-brand">
+            {total === 1 ? "Jewel collected" : `All ${total} jewels collected`}
+          </p>
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            Now get back down to your rocket at the bottom of the page.
+          </p>
+        </div>
+      )}
+
+      {(phase === "repair" || phase === "launch") && (
+        <div className={BANNER}>
+          <p className="font-heading text-sm font-semibold">
+            {phase === "repair" ? "Patching her up…" : "Off he goes"}
+          </p>
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            {phase === "repair"
+              ? "Every jewel accounted for."
+              : "Thanks for the jewels."}
+          </p>
+        </div>
+      )}
+
+      {phase === "won" && (
         <div className="fixed inset-0 z-70 flex items-center justify-center bg-background/70 p-4 backdrop-blur-sm">
           <div className="game-win w-full max-w-sm rounded-2xl border border-border bg-card p-6 text-center shadow-xl">
             <Trophy className="mx-auto size-8 text-brand" />
             <h2 className="mt-3 font-heading text-2xl font-bold tracking-tight">
-              All {total} collected
+              He made it home
             </h2>
             <p className="mt-1.5 text-sm text-muted-foreground">
-              You cleared the whole page in {elapsed.toFixed(1)} seconds.
+              {total === 1 ? "Jewel" : `All ${total} jewels`} collected and the
+              rocket fixed in {elapsed.toFixed(1)} seconds.
             </p>
             <div className="mt-5 flex justify-center gap-2.5">
               <Button size="lg" onClick={restart}>

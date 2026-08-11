@@ -483,6 +483,216 @@ html[data-game-active] [data-reveal] {
   translate: 0 -4.5px;
 }
 
+/* Narrow screens leave a gutter thinner than the robot (sections are px-4, so
+   16px a side), which means there is nowhere to walk off a line of text and drop
+   to the next one. Widen it for the duration of the game only, so the site's own
+   mobile layout is untouched. The level is measured after [data-game-active] is
+   set, so platforms land on the widened positions. */
+@media (max-width: 1023px) {
+  html[data-game-active] main > section,
+  html[data-game-active] footer {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
+}
+
+/* ---- the rocket ----
+   Transform (position + rotation) is written by the simulation; everything else
+   keys off [data-rocket] on the holder. */
+.game-rocket-holder {
+  transform-origin: bottom center;
+  will-change: transform;
+}
+
+.game-rocket {
+  position: absolute;
+  inset: 0;
+  width: 36px;
+  height: 64px;
+  overflow: visible;
+  filter: drop-shadow(0 4px 6px rgb(0 0 0 / 0.4));
+}
+
+.rocket-hull {
+  fill: url(#rk-hull);
+  stroke: rgb(9 12 20 / 0.45);
+  stroke-width: 1;
+}
+
+.rocket-nose {
+  fill: url(#rk-nose);
+  stroke: rgb(9 12 20 / 0.3);
+  stroke-width: 0.6;
+}
+
+.rocket-nozzle {
+  fill: #2b3346;
+  stroke: rgb(9 12 20 / 0.5);
+  stroke-width: 0.7;
+}
+
+.rocket-rivets circle {
+  fill: rgb(9 12 20 / 0.3);
+}
+
+.rocket-fin {
+  fill: var(--purple);
+  stroke: rgb(9 12 20 / 0.35);
+  stroke-width: 0.8;
+}
+
+.rocket-window-ring {
+  fill: #dbe3f0;
+  stroke: rgb(9 12 20 / 0.45);
+  stroke-width: 1;
+}
+
+.rocket-glass {
+  fill: url(#rk-glass);
+}
+
+.rocket-glint {
+  fill: rgb(255 255 255 / 0.55);
+}
+
+.rocket-stripe {
+  stroke: var(--brand);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+/* Engine burn: on during the entry streak and the launch. */
+.rocket-flame {
+  opacity: 0;
+  fill: var(--gold);
+  transform-box: fill-box;
+  transform-origin: center top;
+}
+
+.rocket-flame-core {
+  fill: #fff6d8;
+}
+
+.game-rocket-holder[data-rocket="fly"] .rocket-flame,
+.game-rocket-holder[data-rocket="launch"] .rocket-flame {
+  opacity: 0.95;
+  animation: rocket-burn 0.12s steps(2, end) infinite;
+}
+
+@keyframes rocket-burn {
+  50% {
+    scale: 0.82 0.7;
+    opacity: 0.6;
+  }
+}
+
+/* Smoke: pooled puffs, animated by the simulation with the Web Animations API
+   and left hanging in page space rather than riding with the ship. */
+.game-smoke {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  opacity: 0;
+  background: radial-gradient(
+    circle at 40% 40%,
+    rgb(226 232 240 / 0.85),
+    rgb(148 163 184 / 0.45) 55%,
+    rgb(100 116 139 / 0) 75%
+  );
+  will-change: transform, opacity, scale;
+}
+
+/* Sparks thrown while grinding along the hero badge. */
+.rocket-scrape {
+  opacity: 0;
+  fill: var(--gold);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.game-rocket-holder[data-rocket="slide"] .rocket-scrape {
+  opacity: 1;
+  animation: rocket-scrape 0.16s linear infinite;
+}
+
+.game-rocket-holder[data-rocket="slide"] .rocket-scrape > *:nth-child(2) {
+  animation-delay: 0.05s;
+}
+
+.game-rocket-holder[data-rocket="slide"] .rocket-scrape > *:nth-child(3) {
+  animation-delay: 0.09s;
+}
+
+.game-rocket-holder[data-rocket="slide"] .rocket-scrape > *:nth-child(4) {
+  animation-delay: 0.03s;
+}
+
+@keyframes rocket-scrape {
+  0% {
+    opacity: 0.2;
+    scale: 0.6;
+    translate: 0 0;
+  }
+  60% {
+    opacity: 1;
+    scale: 1.3;
+  }
+  100% {
+    opacity: 0;
+    scale: 0.7;
+    translate: 5px -4px;
+  }
+}
+
+/* Repair sparks, only while it is being patched up. */
+.rocket-sparks {
+  opacity: 0;
+  fill: var(--gold);
+}
+
+.game-rocket-holder[data-rocket="repair"] .rocket-sparks {
+  animation: rocket-spark 0.42s ease-out infinite;
+}
+
+.game-rocket-holder[data-rocket="repair"] .rocket-sparks circle:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+@keyframes rocket-spark {
+  0% {
+    opacity: 0;
+    scale: 0.4;
+  }
+  35% {
+    opacity: 1;
+    scale: 1.15;
+  }
+  100% {
+    opacity: 0;
+    scale: 0.5;
+  }
+}
+
+/* A shudder on the pad before it goes. */
+.game-rocket-holder[data-rocket="launch"] .rocket-frame {
+  animation: rocket-rumble 0.07s linear infinite;
+  transform-box: fill-box;
+}
+
+@keyframes rocket-rumble {
+  25% {
+    translate: 0.7px 0;
+  }
+  75% {
+    translate: -0.7px 0;
+  }
+}
+
+/* Hidden while the robot is inside the ship. */
+.game-player[data-hidden] {
+  opacity: 0;
+}
+
 .bot-shell {
   fill: #eef2fb;
   stroke: rgb(9 12 20 / 0.4);
@@ -639,6 +849,10 @@ html[data-game-active] [data-reveal] {
   .game-win,
   .bot-eyes,
   .bot-thrust,
+  .rocket-flame,
+  .rocket-sparks,
+  .rocket-scrape,
+  .game-rocket-holder[data-rocket="launch"] .rocket-frame,
   .game-player[data-state="idle"] .bot-body,
   .game-player[data-state="run"] .bot-foot-l,
   .game-player[data-state="run"] .bot-foot-r,
