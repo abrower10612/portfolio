@@ -307,6 +307,14 @@ export function GameMode() {
  */
 const BANNER =
   "pointer-events-none fixed top-20 left-4 z-60 max-w-xs rounded-xl border border-border bg-card/95 p-4 shadow-lg backdrop-blur sm:left-6 lg:left-8";
+/**
+ * The intro banner sits at the *bottom*, unlike the others. The crash plays out
+ * across the top of the page — and on a narrow screen the hero badge is barely
+ * below the header — so anything in the top corners covers the scene. Nothing is
+ * happening at the bottom yet, so it goes there.
+ */
+const BANNER_INTRO =
+  "pointer-events-none fixed inset-x-4 bottom-6 z-60 mx-auto max-w-sm rounded-xl border border-border bg-card/95 p-4 text-center shadow-lg backdrop-blur";
 
 type Level = { platforms: Platform[]; jewels: Jewel[]; docHeight: number };
 
@@ -1140,7 +1148,12 @@ function GameRunner({ onExit }: { onExit: () => void }) {
       )}
 
       {/* HUD */}
-      <div className="fixed top-20 right-4 z-60 flex items-center gap-2 sm:right-6 lg:right-8">
+      <div
+        className={cn(
+          "fixed top-20 right-4 z-60 items-center gap-2 sm:right-6 lg:right-8",
+          phase === "intro" ? "hidden sm:flex" : "flex"
+        )}
+      >
         <div className="flex items-center gap-2 rounded-full border border-border bg-card/90 px-3 py-1.5 font-heading text-sm font-semibold tabular-nums backdrop-blur">
           <Gem className="size-4 text-brand" />
           {score}
@@ -1176,7 +1189,7 @@ function GameRunner({ onExit }: { onExit: () => void }) {
       )}
 
       {phase === "intro" && (
-        <div className={BANNER}>
+        <div className={BANNER_INTRO}>
           <p className="font-heading text-sm font-semibold">Incoming…</p>
           <p className="mt-1.5 text-sm text-muted-foreground">
             A little robot just crash-landed on this page.
