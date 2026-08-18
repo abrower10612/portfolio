@@ -17,15 +17,6 @@ type Project = {
 
 const PROJECTS: Project[] = [
   {
-    name: "LeadMagic",
-    category: "Professional",
-    image: "/projects/leadmagic.webp",
-    blurb:
-      "An API first B2B data enrichment platform used by over 3,000 go to market teams to find verified emails, mobile numbers, and company data. I build across the enrichment endpoints and the surfaces on top of them, including the REST API, CLI, and MCP server, keeping lookups fast and reliable at scale.",
-    stack: ["TypeScript", "Next.js", "REST API", "MCP", "CLI"],
-    live: "https://leadmagic.io/",
-  },
-  {
     name: "Forekala",
     category: "Product",
     image: "/projects/forekala.webp",

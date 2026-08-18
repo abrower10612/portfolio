@@ -9,13 +9,6 @@ type Role = {
 
 const ROLES: Role[] = [
   {
-    company: "LeadMagic",
-    role: "Senior Software Engineer",
-    dates: "2026 to Present",
-    description:
-      "Build the API first B2B data enrichment platform that over 3,000 go to market teams rely on for verified emails, mobile numbers, and company intelligence. I work across the enrichment endpoints and the surfaces that sit on top of them, including the REST API, CLI, and MCP server, with a focus on keeping lookups fast and reliable at scale.",
-  },
-  {
     company: "Kaveotech",
     role: "Full Stack Software Engineer",
     dates: "2025 to Present",
